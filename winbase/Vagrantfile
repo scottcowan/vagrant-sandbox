@@ -1,0 +1,30 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.require_version ">= 1.6.0"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.box      = "scottco/winbase64"
+  config.vm.hostname = "test-win7base"
+  config.vm.communicator = "winrm"
+  config.vm.network :private_network, ip: "192.168.33.237"
+  config.windows.set_work_network = true
+
+  config.vm.network :forwarded_port, guest: 80, host: 8081
+  config.vm.network :forwarded_port, guest: 3389, host: 3389
+  config.vm.network :forwarded_port, guest: 5985, host: 5985, id: "winrm", auto_correct: true
+  config.vm.network :forwarded_port, guest: 22, host: 2222
+
+  config.vm.provider :virtualbox do |vb|
+    vb.gui = true
+    vb.customize ["modifyvm", :id, "--memory", 768]
+    vb.customize ["modifyvm", :id, "--cpus", 1]
+    vb.customize ["modifyvm", :id, "--vram", "32"]
+    vb.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
+    vb.customize ["setextradata", "global", "GUI/SuppressMessages", "all" ]
+  end
+
+  config.vm.provision "shell", path: "scripts/provision.ps1"
+end
